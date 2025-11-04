@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Submissao;
 use App\Services\SubmissaoService;
 use Exception;
+use App\Http\Requests\SubmissaoRequest;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -75,7 +76,7 @@ class SubmissaoController extends Controller
      *      )
      * )
      */
-    public function store(Request $request)
+    public function store(SubmissaoRequest $request)
     {
         $submissaoService = new SubmissaoService($request);
 
