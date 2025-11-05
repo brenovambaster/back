@@ -21,13 +21,16 @@ class CheckSubmissionStatusJob implements ShouldQueue
     use SerializesModels;
 
     private const PENDING_STATUSES = [1, 2];
-    private const RELEASE_DELAY_SECONDS = 1;
+    private const POLLING_DELAY_SECONDS = 1;
+    private const MAX_ATTEMPTS = 15;
 
     private int $submissaoId;
+    private int $remainingAttempts;
 
-    public function __construct(int $submissaoId)
+    public function __construct(int $submissaoId, int $remainingAttempts = self::MAX_ATTEMPTS)
     {
         $this->submissaoId = $submissaoId;
+        $this->remainingAttempts = $remainingAttempts;
     }
 
     public function handle(): void
@@ -80,7 +83,16 @@ class CheckSubmissionStatusJob implements ShouldQueue
         }
 
         if ($possuiPendentes) {
-            $this->release(self::RELEASE_DELAY_SECONDS);
+            if ($this->remainingAttempts <= 0) {
+                Log::warning('Limite de tentativas atingido ao verificar status da submissão.', [
+                    'submissao_id' => $this->submissaoId,
+                ]);
+
+                return;
+            }
+
+            CheckSubmissionStatusJob::dispatch($this->submissaoId, $this->remainingAttempts - 1)
+                ->delay(now()->addSeconds(self::POLLING_DELAY_SECONDS));
         }
     }
 }
