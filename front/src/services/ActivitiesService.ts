@@ -161,3 +161,27 @@ export async function deleteActivity(id: number): Promise<boolean> {
     return false;
   }
 }
+
+export async function getActivitySubmissions(turmaId: number, atividadeId: number): Promise<any[]> {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/turmas/${turmaId}/atividades/${atividadeId}/submissoes`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    return response.data.submissoes || [];
+  } catch (error) {
+    console.error("Erro ao buscar submissões da atividade:", error);
+    if (axios.isAxiosError(error)) {
+      console.error("Status:", error.response?.status);
+      console.error("Data:", error.response?.data);
+    }
+    return [];
+  }
+}
